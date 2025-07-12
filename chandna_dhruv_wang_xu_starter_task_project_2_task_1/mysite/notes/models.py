@@ -4,7 +4,7 @@ from django.db import models
 
 class Article(models.Model):
     title = models.CharField(max_length=200)
-    url = models.URLField(blank=True, null=True)
+    pdf_url = models.URLField("PDF_URL", blank=True, null=True)
     content = models.TextField()
 
     def __str__(self):
