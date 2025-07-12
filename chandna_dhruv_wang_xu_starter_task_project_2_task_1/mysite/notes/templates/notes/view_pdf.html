@@ -3,31 +3,53 @@
 <head>
     {% load static %}
     <link rel="stylesheet" href="{% static 'notes/style.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+    // Set the worker path
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 </head>
 <body>
-    <script src="https://unpkg.com/pdfjs-dist@latest/build/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@latest/build/pdf.worker.min.js';</script>
     <div class="container">
+        <!-- LEFT: PDF Viewer -->
         <div class="pdf-viewer">
-        {% if article.pdf_url %}
-            <iframe src="{{ article.pdf_url }}" width="100%" height="100%"></iframe>
-        {% else %}
-            <p>No PDF provided.</p>
-        {% endif %}
+            <canvas id="pdf-canvas"></canvas>
         </div>
+
+        <!-- RIGHT: Notes panel -->
         <div class="right-panel">
-        <button class="new-note-button" onclick="showNote()">New Note</button>
-        <div class="note" id="note">
-            <input type="text" placeholder="Title (optional)">
-            <textarea rows="6" placeholder="Write your note here..."></textarea>
-        </div>
+            <button class="new-note-button" onclick="showNote()">New Note</button>
+            <div class="note" id="note">
+                <input type="text" placeholder="Title (optional)">
+                <textarea rows="6" placeholder="Write your note here..."></textarea>
+            </div>
         </div>
     </div>
 
     <script>
+        const url = "{{ article.pdf_url }}";  // Django injects the PDF URL here
+
+        const canvas = document.getElementById("pdf-canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Load PDF and render first page
+        pdfjsLib.getDocument(url).promise.then(function(pdf) {
+            return pdf.getPage(1);
+        }).then(function(page) {
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            page.render(renderContext);
+        });
+
         function showNote() {
-        const note = document.getElementById("note");
-        note.style.display = "block";
+            const note = document.getElementById("note");
+            note.style.display = "block";
         }
     </script>
 </body>
