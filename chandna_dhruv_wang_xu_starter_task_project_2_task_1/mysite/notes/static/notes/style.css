@@ -1,0 +1,43 @@
+/* notes/static/notes/style.css */
+
+.container {
+    display: flex;
+    height: 100vh;
+  }
+  .pdf-viewer {
+    flex: 1;
+    overflow-y: scroll;
+    border-right: 1px solid #ccc;
+  }
+  .right-panel {
+    flex: 1;
+    padding: 1em;
+    position: relative;
+  }
+  .new-note-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0.5em 1em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .note {
+    display: none;
+    margin-top: 3em;
+    background: #fff8dc;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 1em;
+    border-radius: 5px;
+  }
+  .note input,
+  .note textarea {
+    width: 100%;
+    margin-bottom: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 0.5em;
+  }
