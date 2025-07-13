@@ -75,7 +75,12 @@
                     };
 
                     page.render(renderContext);
-                    container.appendChild(canvas);
+                    const pageWrapper = document.createElement("div");
+                    pageWrapper.classList.add("pdf-page-wrapper");
+                    pageWrapper.dataset.page = pageNum;
+                    pageWrapper.style.position = "relative";
+                    pageWrapper.appendChild(canvas);
+                    container.appendChild(pageWrapper);
                 });
             }
         });
@@ -109,7 +114,7 @@
 
         function saveAction(element) {
             actionHistory.push(element);
-            redoStack = []; // Clear redo stack on new action
+            redoStack = [];
         }
 
         function undoAction() {
@@ -126,7 +131,9 @@
             const last = redoStack.pop();
             if (last) {
                 actionHistory.push(last);
-                pdfContainer.appendChild(last);
+                const pageNum = last.dataset.page;
+                const wrapper = document.querySelector(`.pdf-page-wrapper[data-page='${pageNum}']`);
+                if (wrapper) wrapper.appendChild(last);
             }
         }
 
@@ -158,6 +165,9 @@
                 return;
             }
 
+            const targetWrapper = e.target.closest(".pdf-page-wrapper");
+            if (!targetWrapper) return;
+
             startX = e.offsetX;
             startY = e.offsetY;
 
@@ -165,7 +175,8 @@
             selectionBox.classList.add(tool === "highlight" ? "highlight-box" : "underline-line");
             selectionBox.style.left = `${startX}px`;
             selectionBox.style.top = `${startY}px`;
-            pdfContainer.appendChild(selectionBox);
+            selectionBox.dataset.page = targetWrapper.dataset.page;
+            targetWrapper.appendChild(selectionBox);
             saveAction(selectionBox);
 
             pdfContainer.addEventListener("mousemove", updateSelection);
@@ -174,8 +185,12 @@
 
         function updateSelection(e) {
             if (!selectionBox) return;
-            const currentX = e.offsetX;
-            const currentY = e.offsetY;
+            const targetWrapper = e.target.closest(".pdf-page-wrapper");
+            if (!targetWrapper) return;
+
+            const rect = targetWrapper.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
 
             const width = currentX - startX;
             const height = currentY - startY;
