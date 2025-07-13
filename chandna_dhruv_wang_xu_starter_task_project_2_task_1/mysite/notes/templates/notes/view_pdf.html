@@ -95,9 +95,31 @@
             }
         });
 
+        function createNote(title = "", body = "") {
+            const notePanel = document.querySelector(".right-panel");
+        
+            const noteDiv = document.createElement("div");
+            noteDiv.classList.add("note");
+        
+            const titleInput = document.createElement("input");
+            titleInput.type = "text";
+            titleInput.placeholder = "Title (optional)";
+            titleInput.value = title;
+        
+            const bodyTextarea = document.createElement("textarea");
+            bodyTextarea.rows = 6;
+            bodyTextarea.placeholder = "Write your note here...";
+            bodyTextarea.value = body;
+        
+            noteDiv.appendChild(titleInput);
+            noteDiv.appendChild(bodyTextarea);
+            notePanel.appendChild(noteDiv);
+        
+            noteDiv.style.display = "block";
+        }
+
         function showNote() {
-            const note = document.getElementById("note");
-            note.style.display = "block";
+            createNote();
         }
     </script>
 </body>
@@ -252,6 +274,13 @@
             pdfContainer.removeEventListener("mouseup", endSelection);
             selectionBox = null;
             document.querySelectorAll(".highlight-box, .underline-line").forEach(el => el.classList.remove("selected-annotation"));
+            
+            if (tool === "highlight" || tool === "underline") {
+                createNote();
+            }
+    
+            selectionBox = null;
+        
         }
     </script>
 </html>
