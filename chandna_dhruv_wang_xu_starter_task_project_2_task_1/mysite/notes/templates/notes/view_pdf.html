@@ -7,6 +7,37 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
+    <style>
+      #tools-panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+      }
+
+      #tools-panel button {
+        margin-bottom: 5px;
+        padding: 0.5em;
+        cursor: pointer;
+        background-color: #eee;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .highlight-box {
+        position: absolute;
+        background-color: rgba(255, 255, 0, 0.4);
+        pointer-events: none;
+      }
+
+      .underline-line {
+        position: absolute;
+        background-color: black;
+        pointer-events: none;
+      }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -55,4 +86,117 @@
         }
     </script>
 </body>
+    <!-- Tools Panel -->
+    <div id="tools-panel">
+        <button id="highlight-btn">Highlight</button>
+        <button id="underline-btn">Underline</button>
+        <button id="erase-btn">Erase</button>
+    </div>
+
+    <script>
+        let tool = null;
+        document.getElementById("highlight-btn").onclick = () => tool = "highlight";
+        document.getElementById("underline-btn").onclick = () => tool = "underline";
+        document.getElementById("erase-btn").onclick = () => tool = "erase";
+
+        const pdfContainer = document.getElementById("pdf-container");
+
+        pdfContainer.addEventListener("mousedown", startSelection);
+        let startX, startY, selectionBox;
+
+        let actionHistory = [];
+        let redoStack = [];
+
+        function saveAction(element) {
+            actionHistory.push(element);
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undoAction() {
+            if (actionHistory.length === 0) return;
+            const last = actionHistory.pop();
+            if (last) {
+                redoStack.push(last);
+                last.remove();
+            }
+        }
+
+        function redoAction() {
+            if (redoStack.length === 0) return;
+            const last = redoStack.pop();
+            if (last) {
+                actionHistory.push(last);
+                pdfContainer.appendChild(last);
+            }
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener("keydown", (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+                if (e.shiftKey) {
+                    e.preventDefault();
+                    redoAction();
+                } else {
+                    e.preventDefault();
+                    undoAction();
+                }
+            }
+        });
+
+        function startSelection(e) {
+            if (!tool) return;
+            e.preventDefault();
+
+            if (tool === "erase") {
+                const elements = document.elementsFromPoint(e.clientX, e.clientY);
+                for (const el of elements) {
+                    if (el.classList.contains("highlight-box") || el.classList.contains("underline-line")) {
+                        el.remove();
+                        return;
+                    }
+                }
+                return;
+            }
+
+            startX = e.offsetX;
+            startY = e.offsetY;
+
+            selectionBox = document.createElement("div");
+            selectionBox.classList.add(tool === "highlight" ? "highlight-box" : "underline-line");
+            selectionBox.style.left = `${startX}px`;
+            selectionBox.style.top = `${startY}px`;
+            pdfContainer.appendChild(selectionBox);
+            saveAction(selectionBox);
+
+            pdfContainer.addEventListener("mousemove", updateSelection);
+            pdfContainer.addEventListener("mouseup", endSelection);
+        }
+
+        function updateSelection(e) {
+            if (!selectionBox) return;
+            const currentX = e.offsetX;
+            const currentY = e.offsetY;
+
+            const width = currentX - startX;
+            const height = currentY - startY;
+
+            if (tool === "highlight") {
+                selectionBox.style.width = `${Math.abs(width)}px`;
+                selectionBox.style.height = `${Math.abs(height)}px`;
+                selectionBox.style.left = `${Math.min(startX, currentX)}px`;
+                selectionBox.style.top = `${Math.min(startY, currentY)}px`;
+            } else if (tool === "underline") {
+                selectionBox.style.width = `${Math.abs(width)}px`;
+                selectionBox.style.height = `2px`;
+                selectionBox.style.left = `${Math.min(startX, currentX)}px`;
+                selectionBox.style.top = `${startY + 10}px`;
+            }
+        }
+
+        function endSelection() {
+            pdfContainer.removeEventListener("mousemove", updateSelection);
+            pdfContainer.removeEventListener("mouseup", endSelection);
+            selectionBox = null;
+        }
+    </script>
 </html>
