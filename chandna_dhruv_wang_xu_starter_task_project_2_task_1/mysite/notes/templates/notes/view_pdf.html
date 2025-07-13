@@ -26,6 +26,11 @@
         border-radius: 4px;
       }
 
+      #tools-panel button.active {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        background-color: #ddd;
+      }
+
       .highlight-box {
         position: absolute;
         background-color: rgba(255, 255, 0, 0.4);
@@ -36,6 +41,11 @@
         position: absolute;
         background-color: black;
         pointer-events: none;
+      }
+
+      .selected-annotation {
+        outline: 2px dashed red;
+        background-color: rgba(0, 255, 255, 0.4); /* Light cyan background for selected box */
       }
     </style>
 </head>
@@ -100,9 +110,16 @@
 
     <script>
         let tool = null;
-        document.getElementById("highlight-btn").onclick = () => tool = "highlight";
-        document.getElementById("underline-btn").onclick = () => tool = "underline";
-        document.getElementById("erase-btn").onclick = () => tool = "erase";
+        const buttons = document.querySelectorAll("#tools-panel button");
+        function setTool(selectedTool, buttonId) {
+            tool = selectedTool;
+            buttons.forEach(btn => btn.classList.remove("active"));
+            document.getElementById(buttonId).classList.add("active");
+        }
+
+        document.getElementById("highlight-btn").onclick = () => setTool("highlight", "highlight-btn");
+        document.getElementById("underline-btn").onclick = () => setTool("underline", "underline-btn");
+        document.getElementById("erase-btn").onclick = () => setTool("erase", "erase-btn");
 
         const pdfContainer = document.getElementById("pdf-container");
 
@@ -130,10 +147,10 @@
             if (redoStack.length === 0) return;
             const last = redoStack.pop();
             if (last) {
-                actionHistory.push(last);
-                const pageNum = last.dataset.page;
-                const wrapper = document.querySelector(`.pdf-page-wrapper[data-page='${pageNum}']`);
-                if (wrapper) wrapper.appendChild(last);
+                const { element, parent, page } = last;
+                actionHistory.push(element);
+                const wrapper = document.querySelector(`.pdf-page-wrapper[data-page='${page}']`);
+                if (wrapper) wrapper.appendChild(element);
             }
         }
 
@@ -155,11 +172,34 @@
             e.preventDefault();
 
             if (tool === "erase") {
-                const elements = document.elementsFromPoint(e.clientX, e.clientY);
-                for (const el of elements) {
+                document.querySelectorAll(".highlight-box, .underline-line").forEach(el => el.classList.remove("selected-annotation"));
+                const wrapper = e.target.closest(".pdf-page-wrapper");
+                if (!wrapper) return;
+
+                const wrapperRect = wrapper.getBoundingClientRect();
+                const x = e.clientX - wrapperRect.left;
+                const y = e.clientY - wrapperRect.top;
+
+                const children = Array.from(wrapper.children);
+                for (let i = children.length - 1; i >= 0; i--) {
+                    const el = children[i];
                     if (el.classList.contains("highlight-box") || el.classList.contains("underline-line")) {
-                        el.remove();
-                        return;
+                        const elRect = el.getBoundingClientRect();
+                        const relX = e.clientX - elRect.left;
+                        const relY = e.clientY - elRect.top;
+                        const margin = 10;
+                        if (relX >= -margin && relX <= elRect.width + margin && relY >= -margin && relY <= elRect.height + margin) {
+                            el.classList.add("selected-annotation");
+                            setTimeout(() => {
+                              const parent = el.parentNode;
+                              const pageNum = el.dataset.page;
+                              el.remove();
+                              actionHistory = actionHistory.filter(a => a !== el);
+                              redoStack = []; // clear redo on new action
+                              redoStack.push({ element: el, parent: parent, page: pageNum });
+                            }, 200);
+                            return;
+                        }
                     }
                 }
                 return;
@@ -203,8 +243,7 @@
             } else if (tool === "underline") {
                 selectionBox.style.width = `${Math.abs(width)}px`;
                 selectionBox.style.height = `2px`;
-                selectionBox.style.left = `${Math.min(startX, currentX)}px`;
-                selectionBox.style.top = `${startY + 10}px`;
+                selectionBox.style.top = `${Math.min(startY, currentY)}px`;
             }
         }
 
@@ -212,6 +251,7 @@
             pdfContainer.removeEventListener("mousemove", updateSelection);
             pdfContainer.removeEventListener("mouseup", endSelection);
             selectionBox = null;
+            document.querySelectorAll(".highlight-box, .underline-line").forEach(el => el.classList.remove("selected-annotation"));
         }
     </script>
 </html>
