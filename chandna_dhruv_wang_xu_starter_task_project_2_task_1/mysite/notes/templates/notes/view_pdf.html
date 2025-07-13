@@ -251,9 +251,53 @@
                 return;
             }
 
+            // New logic to distinguish between click (select) and drag (create annotation)
             const targetWrapper = e.target.closest(".pdf-page-wrapper");
             if (!targetWrapper) return;
 
+            const clickThreshold = 5;
+            const initialX = e.clientX;
+            const initialY = e.clientY;
+
+            function onMouseMove(moveEvent) {
+                const dx = moveEvent.clientX - initialX;
+                const dy = moveEvent.clientY - initialY;
+                if (Math.abs(dx) > clickThreshold || Math.abs(dy) > clickThreshold) {
+                    document.removeEventListener("mousemove", onMouseMove);
+                    document.removeEventListener("mouseup", onMouseUp);
+                    beginAnnotation(e, targetWrapper);
+                }
+            }
+
+            function onMouseUp(upEvent) {
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+
+                // Perform selection if it's a simple click
+                const x = upEvent.clientX - targetWrapper.getBoundingClientRect().left;
+                const y = upEvent.clientY - targetWrapper.getBoundingClientRect().top;
+
+                const children = Array.from(targetWrapper.children);
+                for (let i = children.length - 1; i >= 0; i--) {
+                    const el = children[i];
+                    if (el.classList.contains("highlight-box") || el.classList.contains("underline-line")) {
+                        const elRect = el.getBoundingClientRect();
+                        const relX = upEvent.clientX - elRect.left;
+                        const relY = upEvent.clientY - elRect.top;
+                        const margin = 10;
+                        if (relX >= -margin && relX <= elRect.width + margin && relY >= -margin && relY <= elRect.height + margin) {
+                            highlightPair(el.dataset.annotationId);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        }
+
+        function beginAnnotation(e, targetWrapper) {
             startX = e.offsetX;
             startY = e.offsetY;
 
