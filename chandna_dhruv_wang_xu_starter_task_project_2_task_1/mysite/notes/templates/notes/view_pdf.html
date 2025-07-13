@@ -114,9 +114,25 @@
 
             noteDiv.appendChild(titleInput);
             noteDiv.appendChild(bodyTextarea);
-            notePanel.appendChild(noteDiv);
+            // notePanel.appendChild(noteDiv); // REMOVE: will append below
 
             noteDiv.style.display = "block";
+
+            // Insert noteDiv in order based on annotation Y-offset
+            const allNotes = Array.from(notePanel.querySelectorAll(".note")).filter(n => n !== noteDiv);
+            const annotationElement = document.querySelector(`[data-annotation-id='${annotationId}']`);
+            const newY = annotationElement?.getBoundingClientRect().top || 0;
+            let inserted = false;
+            for (let existingNote of allNotes) {
+                const otherAnnotationId = existingNote.dataset.annotationId;
+                const otherAnnotation = document.querySelector(`[data-annotation-id='${otherAnnotationId}']`);
+                if (otherAnnotation?.getBoundingClientRect().top > newY) {
+                    notePanel.insertBefore(noteDiv, existingNote);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) notePanel.appendChild(noteDiv);
 
             // Link back to annotation
             noteDiv.addEventListener("click", () => {
