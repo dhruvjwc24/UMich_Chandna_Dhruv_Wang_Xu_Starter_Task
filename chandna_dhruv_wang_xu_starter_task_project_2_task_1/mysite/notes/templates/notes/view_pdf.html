@@ -44,8 +44,8 @@
       }
 
       .selected-annotation {
-        outline: 2px dashed red;
-        background-color: rgba(0, 255, 255, 0.4); /* Light cyan background for selected box */
+          outline: 2px dashed red;
+          background-color: rgba(0, 255, 255, 0.3);
       }
     </style>
 </head>
@@ -95,27 +95,51 @@
             }
         });
 
-        function createNote(title = "", body = "") {
+        function createNote(annotationId, title = "", body = "") {
             const notePanel = document.querySelector(".right-panel");
-        
+
             const noteDiv = document.createElement("div");
             noteDiv.classList.add("note");
-        
+            noteDiv.dataset.annotationId = annotationId;
+
             const titleInput = document.createElement("input");
             titleInput.type = "text";
             titleInput.placeholder = "Title (optional)";
             titleInput.value = title;
-        
+
             const bodyTextarea = document.createElement("textarea");
             bodyTextarea.rows = 6;
             bodyTextarea.placeholder = "Write your note here...";
             bodyTextarea.value = body;
-        
+
             noteDiv.appendChild(titleInput);
             noteDiv.appendChild(bodyTextarea);
             notePanel.appendChild(noteDiv);
-        
+
             noteDiv.style.display = "block";
+
+            // Link back to annotation
+            noteDiv.addEventListener("click", () => {
+                highlightPair(annotationId);
+            });
+        }
+
+        function highlightPair(annotationId) {
+            document.querySelectorAll(".highlight-box, .underline-line").forEach(el => {
+                if (el.dataset.annotationId === annotationId) {
+                    el.classList.add("selected-annotation");
+                } else {
+                    el.classList.remove("selected-annotation");
+                }
+            });
+
+            document.querySelectorAll(".note").forEach(note => {
+                if (note.dataset.annotationId === annotationId) {
+                    note.classList.add("selected-annotation");
+                } else {
+                    note.classList.remove("selected-annotation");
+                }
+            });
         }
 
         function showNote() {
@@ -272,15 +296,22 @@
         function endSelection() {
             pdfContainer.removeEventListener("mousemove", updateSelection);
             pdfContainer.removeEventListener("mouseup", endSelection);
-            selectionBox = null;
             document.querySelectorAll(".highlight-box, .underline-line").forEach(el => el.classList.remove("selected-annotation"));
-            
+
             if (tool === "highlight" || tool === "underline") {
-                createNote();
+                const annotationId = `annotation-${Date.now()}`;
+                if (selectionBox) {
+                    selectionBox.dataset.annotationId = annotationId;
+
+                    // Add click-to-select on annotation
+                    selectionBox.addEventListener("click", () => {
+                        highlightPair(annotationId);
+                    });
+                }
+                createNote(annotationId);
             }
-    
+
             selectionBox = null;
-        
         }
     </script>
 </html>
