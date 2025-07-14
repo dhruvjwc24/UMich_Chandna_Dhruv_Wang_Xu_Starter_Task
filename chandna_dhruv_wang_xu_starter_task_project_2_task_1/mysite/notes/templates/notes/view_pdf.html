@@ -58,11 +58,7 @@
 
         <!-- RIGHT: Notes panel -->
         <div class="right-panel">
-            <button class="new-note-button" onclick="showNote()">New Note</button>
-            <div class="note" id="note">
-                <input type="text" placeholder="Title (optional)">
-                <textarea rows="6" placeholder="Write your note here..."></textarea>
-            </div>
+            <button class="save-note-button" onclick="saveAllNotes()">Save Note</button>
         </div>
     </div>
 
@@ -91,9 +87,94 @@
                     pageWrapper.style.position = "relative";
                     pageWrapper.appendChild(canvas);
                     container.appendChild(pageWrapper);
+
                 });
             }
+
         });
+
+
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+            const c = cookie.trim();
+            if (c.startsWith(name + '=')) {
+                return decodeURIComponent(c.substring(name.length + 1));
+            }
+            }
+            return null;
+        }
+        
+        function saveAllNotes() {
+            const notes = document.querySelectorAll('.note');
+            notes.forEach(note => {
+                const title = note.querySelector('input').value;
+                const content = note.querySelector('textarea').value;
+                const annotationId = note.dataset.annotationId;
+                console.log("save all notes annotationId:", annotationId);
+
+                const noteId = note.dataset.noteId || null;
+            
+                fetch('/api/save_note/', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                    note_id: noteId,
+                    annotation_id: annotationId,
+                    title: title,
+                    content: content,
+                    article_id: parseInt("{{ article.id }}"),
+                    })
+                }).then(response => response.json())
+                    .then(data => {
+                    if (data.status === 'success') {
+                        note.dataset.noteId = data.note_id; // Update with DB-assigned ID
+                    } else {
+                        alert("Failed to save note: " + data.message);
+                    }
+                    });
+            });
+        
+            alert("All notes saved.");
+        }
+
+        function saveAnnotation(selectionBox) {
+
+            const annotationData = {
+                type: selectionBox.getAttribute("class"),
+                article_id: parseInt("{{ article.id }}"),
+                page: parseInt(selectionBox.getAttribute('data-page')),
+                annotation_id: selectionBox.getAttribute('data-annotation-id'),
+                left: parseFloat(selectionBox.style.left),
+                top: parseFloat(selectionBox.style.top),
+                width: parseFloat(selectionBox.style.width),
+                height: parseFloat(selectionBox.style.height),
+            };
+
+            fetch('/api/save_annotation/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(annotationData)
+              })
+              .then(response => response.json())
+              .then(data => {
+              if (data.status === 'success') {
+                console.log('[CONSOLE] Annotation succcessfully saved in the database');
+              } else {
+                  console.log("[CONSOLE] DATA: ", data)
+                  alert("Failed to save annotation: " + data.message);
+              }
+            });
+              
+            alert("Annotation saved.");
+        }
 
         function createNote(annotationId, title = "", body = "") {
             const notePanel = document.querySelector(".right-panel");
@@ -111,6 +192,7 @@
             bodyTextarea.rows = 6;
             bodyTextarea.placeholder = "Write your note here...";
             bodyTextarea.value = body;
+
 
             noteDiv.appendChild(titleInput);
             noteDiv.appendChild(bodyTextarea);
@@ -230,6 +312,8 @@
         });
 
         function startSelection(e) {
+            console.debug("DEBUG: In startSelection.");
+
             if (!tool) return;
             e.preventDefault();
 
@@ -286,6 +370,8 @@
             }
 
             function onMouseUp(upEvent) {
+                console.debug("DEBUG: In onMouseUp.");
+
                 document.removeEventListener("mousemove", onMouseMove);
                 document.removeEventListener("mouseup", onMouseUp);
 
@@ -330,6 +416,8 @@
         }
 
         function updateSelection(e) {
+            console.debug("DEBUG: In updateSelection.");
+
             if (!selectionBox) return;
             const targetWrapper = e.target.closest(".pdf-page-wrapper");
             if (!targetWrapper) return;
@@ -354,21 +442,33 @@
         }
 
         function endSelection() {
+            console.debug("DEBUG: In endSelection.");
+
             pdfContainer.removeEventListener("mousemove", updateSelection);
             pdfContainer.removeEventListener("mouseup", endSelection);
             document.querySelectorAll(".highlight-box, .underline-line").forEach(el => el.classList.remove("selected-annotation"));
 
             if (tool === "highlight" || tool === "underline") {
-                const annotationId = `annotation-${Date.now()}`;
+                // const annotationId = `annotation-${Date.now()}`;
+                const annotationId = Date.now();
                 if (selectionBox) {
                     selectionBox.dataset.annotationId = annotationId;
-
+                    console.log("Selection box: ", selectionBox)
+                    
                     // Add click-to-select on annotation
                     selectionBox.addEventListener("click", () => {
                         highlightPair(annotationId);
                     });
                 }
-                createNote(annotationId);
+                try {
+                    console.debug("CONSOLE: before createNote is defined. Proceeding to call it.");
+                    saveAnnotation(selectionBox);
+                    createNote(annotationId);
+                    console.debug("CONSOLE: createNote is defined. Proceeding to call it.");
+                } catch (e) {
+                    console.error("createNote is not defined or threw an error:", e);
+                    alert("Note creation failed. Check if 'createNote' is defined.");
+                }
             }
 
             selectionBox = null;
