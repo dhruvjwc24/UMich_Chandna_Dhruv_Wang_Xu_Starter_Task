@@ -217,16 +217,72 @@
             noteDiv.classList.add("note");
             noteDiv.dataset.annotationId = annotationId;
 
+            // Add button container for edit/delete buttons
+            const buttonContainer = document.createElement("div");
+            buttonContainer.style.display = "flex";
+            buttonContainer.style.justifyContent = "flex-end";
+            buttonContainer.style.gap = "5px";
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "🗑️";
+            deleteBtn.title = "Delete Note";
+            deleteBtn.style.cursor = "pointer";
+            deleteBtn.style.background = "none";
+            deleteBtn.style.border = "none";
+            deleteBtn.style.fontSize = "1em";
+
+            deleteBtn.onclick = () => {
+                // Delete note div from UI
+                noteDiv.remove();
+                // Delete annotation from page
+                const linkedAnnotation = document.querySelector(`[data-annotation-id='${annotationId}']`);
+                if (linkedAnnotation) linkedAnnotation.remove();
+
+                // Call API to delete from database
+                fetch('/api/delete_note_and_annotation/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        annotation_id: annotationId
+                    })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.status !== 'deleted') {
+                          alert("Failed to delete annotation/note: " + data.message);
+                      }
+                  });
+            };
+
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "✏️";
+            editBtn.title = "Edit Note";
+            editBtn.style.cursor = "pointer";
+            editBtn.style.background = "none";
+            editBtn.style.border = "none";
+            editBtn.style.fontSize = "1em";
+            editBtn.onclick = () => {
+                titleInput.disabled = false;
+                bodyTextarea.disabled = false;
+            };
+
+            buttonContainer.appendChild(editBtn);
+            buttonContainer.appendChild(deleteBtn);
+            noteDiv.appendChild(buttonContainer);
+
             const titleInput = document.createElement("input");
             titleInput.type = "text";
             titleInput.placeholder = "Title (optional)";
             titleInput.value = title;
+            titleInput.disabled = true;
 
             const bodyTextarea = document.createElement("textarea");
             bodyTextarea.rows = 6;
             bodyTextarea.placeholder = "Write your note here...";
             bodyTextarea.value = body;
-
+            bodyTextarea.disabled = true;
 
             noteDiv.appendChild(titleInput);
             noteDiv.appendChild(bodyTextarea);
@@ -374,6 +430,22 @@
                               const parent = el.parentNode;
                               const pageNum = el.dataset.page;
                               el.remove();
+                              // Begin: API call to delete annotation/note
+                              const annotationId = el.dataset.annotationId;
+                              fetch('/api/delete_note_and_annotation/', {
+                                  method: 'POST',
+                                  headers: {
+                                      'Content-Type': 'application/json',
+                                      'X-CSRFToken': getCSRFToken()
+                                  },
+                                  body: JSON.stringify({ annotation_id: annotationId })
+                              }).then(response => response.json())
+                                .then(data => {
+                                    if (data.status !== 'deleted') {
+                                        alert("Failed to delete annotation/note: " + data.message);
+                                    }
+                                });
+                              // End: API call
                               actionHistory = actionHistory.filter(a => a !== el);
                               redoStack = []; // clear redo on new action
                               redoStack.push({ element: el, parent: parent, page: pageNum });

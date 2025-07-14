@@ -9,6 +9,6 @@ urlpatterns = [
     path('pdf/<int:article_id>/', views.view_pdf, name='view_pdf'), # in-use
     path('api/save_annotation/', views.save_annotation, name='save_annotation'), # in-use
     path('api/save_note/', views.save_note, name='save_note'), # in-use
-    path('delete-annotation/', views.delete_annotation, name='delete_annotation'),
+    path('api/delete_note_and_annotation/', views.delete_note_and_annotation, name='delete_note_and_annotation'),
     path('update-note/', views.update_note, name='update_note'),
 ]

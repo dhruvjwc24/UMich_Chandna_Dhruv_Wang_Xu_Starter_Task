@@ -53,6 +53,18 @@ def view_pdf(request, article_id):
         "notes": notes
     })
     
+def delete_note_and_annotation(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        annotation = get_object_or_404(Annotation, pk=data['annotation_id'])
+        try:
+            note = annotation.note
+        except Note.DoesNotExist:
+            note = None
+        annotation.delete()
+        note.delete() if note else None
+        return JsonResponse({"status": "deleted"})
+    
 def update_note(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -61,13 +73,6 @@ def update_note(request):
         note.body = data.get('body', note.body)
         note.save()
         return JsonResponse({"status": "updated"})
-
-def delete_annotation(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        annotation = get_object_or_404(Annotation, pk=data['annotation_id'])
-        annotation.delete()
-        return JsonResponse({"status": "deleted"})
     
 @csrf_exempt
 def save_annotation(request):
