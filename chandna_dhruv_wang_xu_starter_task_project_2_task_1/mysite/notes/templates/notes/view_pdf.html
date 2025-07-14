@@ -97,32 +97,6 @@
 
         });
 
-        function renderNotesForPage(pageWrapper, pageNum) {
-            const allAnnotations = JSON.parse(document.getElementById("annotation-data").textContent);
-            console.log("[CONSOLE] ALLANNOTATIONS: ", allAnnotations);
-            const annotationsForPage = allAnnotations.filter(a => a.page === pageNum);
-
-
-            annotationsForPage.forEach(annotation => {
-                const annotationEl = document.createElement("div");
-                annotationEl.classList.add(annotation.annotation_type === "highlight-box" ? "highlight-box" : "underline-line");
-//                annotationEl.classList.add("highlight-box");
-                annotationEl.dataset.annotationId = annotation.id;
-                annotationEl.dataset.page = annotation.page;
-                annotationEl.style.left = annotation.left + "px";
-                annotationEl.style.top = annotation.top + "px";
-                annotationEl.style.width = annotation.width + "px";
-                annotationEl.style.height = annotation.height + "px";
-                annotationEl.style.position = "absolute";
-        
-                annotationEl.addEventListener("click", () => {
-                    highlightPair(annotation.id.toString());
-                });
-        
-                pageWrapper.appendChild(annotationEl);
-            });
-        }
-
         function renderAnnotationsForPage(pageWrapper, pageNum) {
             const allAnnotations = JSON.parse(document.getElementById("annotation-data").textContent);
             console.log("[CONSOLE] ALLANNOTATIONS: ", allAnnotations);
@@ -146,9 +120,13 @@
                 });
         
                 pageWrapper.appendChild(annotationEl);
+
+                console.log("[CONSOLE] ANNOTATION.NOTE: ", annotation.note);
+                if (annotation.note && annotation.note.title !== '' && annotation.note.body !== '') {
+                    createNote(annotation.id, annotation.note.title, annotation.note.body);
+                }
             });
         }
-
 
         function getCSRFToken() {
             const name = 'csrftoken';
