@@ -61,6 +61,9 @@
             <button class="save-note-button" onclick="saveAllNotes()">Save Note</button>
         </div>
     </div>
+    
+    {{ annotations|json_script:"annotation-data" }}
+
 
     <script>
         const url = "{{ article.pdf_url }}";
@@ -88,10 +91,63 @@
                     pageWrapper.appendChild(canvas);
                     container.appendChild(pageWrapper);
 
+                    renderAnnotationsForPage(pageWrapper, pageNum);            
                 });
             }
 
         });
+
+        function renderNotesForPage(pageWrapper, pageNum) {
+            const allAnnotations = JSON.parse(document.getElementById("annotation-data").textContent);
+            console.log("[CONSOLE] ALLANNOTATIONS: ", allAnnotations);
+            const annotationsForPage = allAnnotations.filter(a => a.page === pageNum);
+
+
+            annotationsForPage.forEach(annotation => {
+                const annotationEl = document.createElement("div");
+                annotationEl.classList.add(annotation.annotation_type === "highlight-box" ? "highlight-box" : "underline-line");
+//                annotationEl.classList.add("highlight-box");
+                annotationEl.dataset.annotationId = annotation.id;
+                annotationEl.dataset.page = annotation.page;
+                annotationEl.style.left = annotation.left + "px";
+                annotationEl.style.top = annotation.top + "px";
+                annotationEl.style.width = annotation.width + "px";
+                annotationEl.style.height = annotation.height + "px";
+                annotationEl.style.position = "absolute";
+        
+                annotationEl.addEventListener("click", () => {
+                    highlightPair(annotation.id.toString());
+                });
+        
+                pageWrapper.appendChild(annotationEl);
+            });
+        }
+
+        function renderAnnotationsForPage(pageWrapper, pageNum) {
+            const allAnnotations = JSON.parse(document.getElementById("annotation-data").textContent);
+            console.log("[CONSOLE] ALLANNOTATIONS: ", allAnnotations);
+            const annotationsForPage = allAnnotations.filter(a => a.page === pageNum);
+
+
+            annotationsForPage.forEach(annotation => {
+                const annotationEl = document.createElement("div");
+                annotationEl.classList.add(annotation.annotation_type === "highlight-box" ? "highlight-box" : "underline-line");
+//                annotationEl.classList.add("highlight-box");
+                annotationEl.dataset.annotationId = annotation.id;
+                annotationEl.dataset.page = annotation.page;
+                annotationEl.style.left = annotation.left + "px";
+                annotationEl.style.top = annotation.top + "px";
+                annotationEl.style.width = annotation.width + "px";
+                annotationEl.style.height = annotation.height + "px";
+                annotationEl.style.position = "absolute";
+        
+                annotationEl.addEventListener("click", () => {
+                    highlightPair(annotation.id.toString());
+                });
+        
+                pageWrapper.appendChild(annotationEl);
+            });
+        }
 
 
         function getCSRFToken() {

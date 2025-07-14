@@ -26,7 +26,7 @@ def view_pdf(request, article_id):
     print(f"[DEBUG] Article ID: {article.id}")
     print(f"[DEBUG] Title: {article.title}")
     print(f"[DEBUG] PDF URL: {article.pdf_url}")    
-    annotations = article.annotations.all()
+    annotations = list(Annotation.objects.filter(article=article).values())
     notes = article.notes.all().order_by("annotation__page", "annotation__top")
     return render(request, "notes/view_pdf.html", {
         "article": article,
