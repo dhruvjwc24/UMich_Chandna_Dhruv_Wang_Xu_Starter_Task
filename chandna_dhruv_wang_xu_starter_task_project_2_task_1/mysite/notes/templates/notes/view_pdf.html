@@ -58,7 +58,7 @@
 
         <!-- RIGHT: Notes panel -->
         <div class="right-panel">
-            <button class="save-note-button" onclick="saveAllNotes()">Save Note</button>
+            <button class="save-note-button" onclick="saveAllNotes()">Save Notes</button>
         </div>
     </div>
     
@@ -122,8 +122,8 @@
                 pageWrapper.appendChild(annotationEl);
 
                 console.log("[CONSOLE] ANNOTATION.NOTE: ", annotation.note);
-                if (annotation.note && annotation.note.title !== '' && annotation.note.body !== '') {
-                    createNote(annotation.id, annotation.note.title, annotation.note.body);
+                if (annotation.note && (annotation.note.title !== '' || annotation.note.body !== '')) {
+                    createNote(annotation.id, true, annotation.note.title, annotation.note.body);
                 }
             });
         }
@@ -143,37 +143,41 @@
         function saveAllNotes() {
             const notes = document.querySelectorAll('.note');
             notes.forEach(note => {
-                const title = note.querySelector('input').value;
-                const content = note.querySelector('textarea').value;
+                const titleInput = note.querySelector('input');
+                const bodyTextarea = note.querySelector('textarea');
+                const title = titleInput.value;
+                const content = bodyTextarea.value;
                 const annotationId = note.dataset.annotationId;
-                console.log("save all notes annotationId:", annotationId);
-
                 const noteId = note.dataset.noteId || null;
-            
+        
+                console.log("save all notes annotationId:", annotationId);
+        
                 fetch('/api/save_note/', {
                     method: 'POST',
                     headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
                     },
                     body: JSON.stringify({
-                    note_id: noteId,
-                    annotation_id: annotationId,
-                    title: title,
-                    content: content,
-                    article_id: parseInt("{{ article.id }}"),
+                        note_id: noteId,
+                        annotation_id: annotationId,
+                        title: title,
+                        content: content,
+                        article_id: parseInt("{{ article.id }}"),
                     })
                 }).then(response => response.json())
-                    .then(data => {
-                    if (data.status === 'success') {
-                        note.dataset.noteId = data.note_id; // Update with DB-assigned ID
-                    } else {
-                        alert("Failed to save note: " + data.message);
-                    }
-                    });
-            });
+                  .then(data => {
+                      if (data.status === 'success') {
+                          note.dataset.noteId = data.note_id; // Update with DB-assigned ID
         
-            alert("All notes saved.");
+                          // ✅ Disable fields after successful save
+                          titleInput.disabled = true;
+                          bodyTextarea.disabled = true;
+                      } else {
+                          alert("Failed to save note: " + data.message);
+                      }
+                  });
+            });
         }
 
         function saveAnnotation(selectionBox) {
@@ -206,11 +210,9 @@
                   alert("Failed to save annotation: " + data.message);
               }
             });
-              
-            alert("Annotation saved.");
         }
 
-        function createNote(annotationId, title = "", body = "") {
+        function createNote(annotationId, EDIT_DISABLED, title = "", body = "") {
             const notePanel = document.querySelector(".right-panel");
 
             const noteDiv = document.createElement("div");
@@ -276,13 +278,13 @@
             titleInput.type = "text";
             titleInput.placeholder = "Title (optional)";
             titleInput.value = title;
-            titleInput.disabled = true;
+            titleInput.disabled = EDIT_DISABLED;
 
             const bodyTextarea = document.createElement("textarea");
             bodyTextarea.rows = 6;
             bodyTextarea.placeholder = "Write your note here...";
             bodyTextarea.value = body;
-            bodyTextarea.disabled = true;
+            bodyTextarea.disabled = EDIT_DISABLED;
 
             noteDiv.appendChild(titleInput);
             noteDiv.appendChild(bodyTextarea);
@@ -328,10 +330,6 @@
                     note.classList.remove("selected-annotation");
                 }
             });
-        }
-
-        function showNote() {
-            createNote();
         }
     </script>
 </body>
@@ -569,7 +567,7 @@
                 try {
                     console.debug("CONSOLE: before createNote is defined. Proceeding to call it.");
                     saveAnnotation(selectionBox);
-                    createNote(annotationId);
+                    createNote(annotationId, false);
                     console.debug("CONSOLE: createNote is defined. Proceeding to call it.");
                 } catch (e) {
                     console.error("createNote is not defined or threw an error:", e);
