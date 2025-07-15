@@ -57,3 +57,19 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     margin-bottom: 20px;
   }
+
+  .textLayer {
+    transform-origin: top left;
+    transform: scale(1);
+    pointer-events: none; /* Prevents accidental mis-selection */
+    line-height: 1;
+    font-family: sans-serif;
+    white-space: pre;
+}
+
+.no-text-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

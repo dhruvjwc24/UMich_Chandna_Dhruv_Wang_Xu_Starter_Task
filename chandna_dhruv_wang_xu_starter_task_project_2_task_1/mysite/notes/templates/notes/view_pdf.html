@@ -7,6 +7,7 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf_viewer.min.css">
     <style>
       #tools-panel {
         position: absolute;
@@ -47,6 +48,19 @@
           outline: 2px dashed red;
           background-color: rgba(0, 255, 255, 0.3);
       }
+
+      /* Disable text selection visually */
+      .no-text-select {
+          user-select: none;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+      }
+
+      /* Disable pointer events for drawing tools on the textLayer */
+      .textLayer.block-events {
+          pointer-events: none;
+      }
     </style>
 </head>
 <body>
@@ -72,26 +86,51 @@
         pdfjsLib.getDocument(url).promise.then(function(pdf) {
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 pdf.getPage(pageNum).then(function(page) {
-                    const viewport = page.getViewport({ scale: 1.2 });
-                    const canvas = document.createElement("canvas");
-                    const context = canvas.getContext("2d");
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    const renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-
-                    page.render(renderContext);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                
                     const pageWrapper = document.createElement("div");
                     pageWrapper.classList.add("pdf-page-wrapper");
                     pageWrapper.dataset.page = pageNum;
                     pageWrapper.style.position = "relative";
+                    pageWrapper.style.marginBottom = "20px";
+                
+                    const canvas = document.createElement("canvas");
+                    const context = canvas.getContext("2d");
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                
                     pageWrapper.appendChild(canvas);
-                    container.appendChild(pageWrapper);
-
-                    renderAnnotationsForPage(pageWrapper, pageNum);            
+                    container.appendChild(pageWrapper); // move this here
+                
+                    page.render(renderContext).promise.then(() => {
+                        const textLayerDiv = document.createElement("div");
+                        textLayerDiv.className = "textLayer";
+                        textLayerDiv.style.position = "absolute";
+                        textLayerDiv.style.top = "0";
+                        textLayerDiv.style.left = "0";
+                        textLayerDiv.style.transform = "none"; // REMOVE scale transform
+                        textLayerDiv.style.height = `${viewport.height}px`;
+                        textLayerDiv.style.width = `${viewport.width}px`;
+                        textLayerDiv.style.zIndex = 2;
+                
+                        pageWrapper.appendChild(textLayerDiv);
+                
+                        page.getTextContent().then(function(textContent) {
+                            pdfjsLib.renderTextLayer({
+                                textContent: textContent,
+                                container: textLayerDiv,
+                                viewport: viewport,
+                                textDivs: []
+                            });
+                        });
+                    });
+                
+                    renderAnnotationsForPage(pageWrapper, pageNum);
                 });
             }
 
@@ -362,6 +401,16 @@
             tool = selectedTool;
             buttons.forEach(btn => btn.classList.remove("active"));
             document.getElementById(buttonId).classList.add("active");
+
+            // Toggle text selection and pointer events for textLayer
+            const textLayers = document.querySelectorAll(".textLayer");
+            textLayers.forEach(layer => {
+                if (tool === "highlight" || tool === "underline") {
+                    layer.classList.add("no-text-select", "block-events");
+                } else {
+                    layer.classList.remove("no-text-select", "block-events");
+                }
+            });
         }
 
         document.getElementById("highlight-btn").onclick = () => setTool("highlight", "highlight-btn");
@@ -561,11 +610,13 @@
                 selectionBox.style.height = `${Math.abs(height)}px`;
                 selectionBox.style.left = `${Math.min(startX, currentX)}px`;
                 selectionBox.style.top = `${Math.min(startY, currentY)}px`;
-            } else if (tool === "underline") {
-                selectionBox.style.width = `${Math.abs(width)}px`;
-                selectionBox.style.height = `2px`;
-                selectionBox.style.top = `${Math.min(startY, currentY)}px`;
-            }
+            } 
+            else if (tool === "underline") {
+                    selectionBox.style.width = `${Math.abs(width)}px`;
+                    selectionBox.style.height = `2px`;
+                    selectionBox.style.left = `${Math.min(startX, currentX)}px`;
+                    selectionBox.style.top = `${Math.min(startY, currentY)}px`;  // ✅ This line is missing in your code
+                }
         }
 
         function endSelection() {
@@ -600,5 +651,15 @@
 
             selectionBox = null;
         }
+    </script>
+    
+    <script>
+        document.getElementById("pdf-container").addEventListener("mouseup", () => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            if (selectedText.length > 0) {
+                console.log("[PDF SELECTION]", selectedText);
+            }
+        });
     </script>
 </html>
