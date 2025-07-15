@@ -167,10 +167,14 @@
                     })
                 }).then(response => response.json())
                   .then(data => {
-                      if (data.status === 'success') {
-                          note.dataset.noteId = data.note_id; // Update with DB-assigned ID
+                      if (data.status !== 'error') {
+                          // note.dataset.noteId = data.note_id; // Update with DB-assigned ID
         
                           // ✅ Disable fields after successful save
+                          if(title === "" && content === "") {
+                              note.remove(); // Remove empty notes
+                              return;
+                          }
                           titleInput.disabled = true;
                           bodyTextarea.disabled = true;
                       } else {
@@ -437,7 +441,7 @@
                             if (noteElement) {
                                 noteElement.remove();
                             }
-                            
+
                             fetch('/api/delete_note_and_annotation/', {
                                 method: 'POST',
                                 headers: {

@@ -57,6 +57,7 @@ def delete_note_and_annotation(request):
     if request.method == "POST":
         data = json.loads(request.body)
         annotation = get_object_or_404(Annotation, pk=data['annotation_id'])
+        print(annotation.id)
         try:
             note = annotation.note
         except Note.DoesNotExist:
@@ -97,7 +98,10 @@ def save_annotation(request):
 @csrf_exempt
 def save_note(request):
     if request.method == 'POST':
-        data = json.loads(request.body)    
+        data = json.loads(request.body)
+        
+        if(data["title"] == "" and data["content"] == ""):
+            return JsonResponse({'status': 'success', 'message': 'Empty note created'})
                 
         note = Note.objects.create(
             article_id=data['article_id'],
