@@ -425,28 +425,36 @@
                         if (relX >= -margin && relX <= elRect.width + margin && relY >= -margin && relY <= elRect.height + margin) {
                             el.classList.add("selected-annotation");
                             setTimeout(() => {
-                              const parent = el.parentNode;
-                              const pageNum = el.dataset.page;
-                              el.remove();
-                              // Begin: API call to delete annotation/note
-                              const annotationId = el.dataset.annotationId;
-                              fetch('/api/delete_note_and_annotation/', {
-                                  method: 'POST',
-                                  headers: {
-                                      'Content-Type': 'application/json',
-                                      'X-CSRFToken': getCSRFToken()
-                                  },
-                                  body: JSON.stringify({ annotation_id: annotationId })
-                              }).then(response => response.json())
-                                .then(data => {
-                                    if (data.status !== 'deleted') {
-                                        alert("Failed to delete annotation/note: " + data.message);
-                                    }
-                                });
-                              // End: API call
-                              actionHistory = actionHistory.filter(a => a !== el);
-                              redoStack = []; // clear redo on new action
-                              redoStack.push({ element: el, parent: parent, page: pageNum });
+                            const parent = el.parentNode;
+                            const pageNum = el.dataset.page;
+                            el.remove();
+
+                            // Begin: API call to delete annotation/note
+                            const annotationId = el.dataset.annotationId;
+
+                            const noteElement = document.querySelector(`.note[data-annotation-id='${annotationId}']`);
+                            console.log("[CONSOLE] NOTE ELEMENT: ", noteElement);
+                            if (noteElement) {
+                                noteElement.remove();
+                            }
+                            
+                            fetch('/api/delete_note_and_annotation/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCSRFToken()
+                                },
+                                body: JSON.stringify({ annotation_id: annotationId })
+                            }).then(response => response.json())
+                            .then(data => {
+                                if (data.status !== 'deleted') {
+                                    alert("Failed to delete annotation/note: " + data.message);
+                                }
+                            });
+                            // End: API call
+                            actionHistory = actionHistory.filter(a => a !== el);
+                            redoStack = []; // clear redo on new action
+                            redoStack.push({ element: el, parent: parent, page: pageNum });
                             }, 200);
                             return;
                         }
