@@ -121,9 +121,10 @@
         
                 pageWrapper.appendChild(annotationEl);
 
+
                 console.log("[CONSOLE] ANNOTATION.NOTE: ", annotation.note);
                 if (annotation.note && (annotation.note.title !== '' || annotation.note.body !== '')) {
-                    createNote(annotation.id, true, annotation.note.title, annotation.note.body);
+                    createNote(annotation.id, true, annotation.note.id, annotation.note.title, annotation.note.body);
                 }
             });
         }
@@ -148,9 +149,11 @@
                 const title = titleInput.value;
                 const content = bodyTextarea.value;
                 const annotationId = note.dataset.annotationId;
+                console.log("note.dataset.noteId: ", note.dataset.noteId);
+
                 const noteId = note.dataset.noteId || null;
-        
-                console.log("save all notes annotationId:", annotationId);
+
+                console.log("Title Input: ", noteId);
         
                 fetch('/api/save_note/', {
                     method: 'POST',
@@ -168,20 +171,22 @@
                 }).then(response => response.json())
                   .then(data => {
                       if (data.status !== 'error') {
-                          // note.dataset.noteId = data.note_id; // Update with DB-assigned ID
-        
+                          
                           // ✅ Disable fields after successful save
                           if(title === "" && content === "") {
                               note.remove(); // Remove empty notes
                               return;
                           }
+                          
                           titleInput.disabled = true;
                           bodyTextarea.disabled = true;
+                          note.dataset.noteId = data.note_id; // Update with DB-assigned ID
                       } else {
                           alert("Failed to save note: " + data.message);
                       }
                   });
             });
+
         }
 
         function saveAnnotation(selectionBox) {
@@ -216,12 +221,14 @@
             });
         }
 
-        function createNote(annotationId, EDIT_DISABLED, title = "", body = "") {
+        function createNote(annotationId, EDIT_DISABLED, noteId, title = "", body = "") {
             const notePanel = document.querySelector(".right-panel");
 
             const noteDiv = document.createElement("div");
             noteDiv.classList.add("note");
             noteDiv.dataset.annotationId = annotationId;
+            noteDiv.dataset.noteId = noteId;
+
 
             // Add button container for edit/delete buttons
             const buttonContainer = document.createElement("div");
@@ -270,13 +277,17 @@
             editBtn.style.border = "none";
             editBtn.style.fontSize = "1em";
             editBtn.onclick = () => {
-                titleInput.disabled = false;
-                bodyTextarea.disabled = false;
+
+                EDIT_DISABLED = titleInput.disabled;
+
+                titleInput.disabled = !EDIT_DISABLED;
+                bodyTextarea.disabled = !EDIT_DISABLED;
             };
 
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(deleteBtn);
             noteDiv.appendChild(buttonContainer);
+
 
             const titleInput = document.createElement("input");
             titleInput.type = "text";

@@ -10,5 +10,5 @@ urlpatterns = [
     path('api/save_annotation/', views.save_annotation, name='save_annotation'), # in-use
     path('api/save_note/', views.save_note, name='save_note'), # in-use
     path('api/delete_note_and_annotation/', views.delete_note_and_annotation, name='delete_note_and_annotation'), # in-use
-    path('update-note/', views.update_note, name='update_note'),
+    path('api/update-note/', views.update_note, name='update_note'),
 ]

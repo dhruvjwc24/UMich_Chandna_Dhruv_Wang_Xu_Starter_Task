@@ -73,7 +73,7 @@ def update_note(request):
         note.title = data.get('title', note.title)
         note.body = data.get('body', note.body)
         note.save()
-        return JsonResponse({"status": "updated"})
+        return JsonResponse({"status": "success"})
     
 @csrf_exempt
 def save_annotation(request):
@@ -99,17 +99,28 @@ def save_annotation(request):
 def save_note(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+        print(f"[DEBUG] NOTE DATA: {data}")
         
         if(data["title"] == "" and data["content"] == ""):
             return JsonResponse({'status': 'success', 'message': 'Empty note created'})
                 
-        note = Note.objects.create(
-            article_id=data['article_id'],
-            annotation_id=data['annotation_id'],
-            title=data["title"],
-            body=data["content"]
-        )
-        
+        if data['note_id'] != "undefined":
+            print(f"[DEBUG] NOTE ID FOund - UPDATE: {data}")
+
+            note = get_object_or_404(Note, pk=data['note_id'])
+
+            note.title = data["title"]
+            note.body = data["content"]
+        else:
+            print(f"[DEBUG] NOTE ID NOTE FOUND - CREATE: {data}")
+
+            note = Note.objects.create(
+                article_id=data['article_id'],
+                annotation_id=data['annotation_id'],
+                title=data["title"],
+                body=data["content"]
+            )
+     
         note.save()
             
         return JsonResponse({'status': 'success', 'note_id': note.id})
