@@ -136,6 +136,49 @@
 
         });
 
+        async function getTextFromHighlightBox(pageNumber, left, top, width, height) {
+            const pdf = await pdfjsLib.getDocument(url).promise;
+            const page = await pdf.getPage(pageNumber);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const textContent = await page.getTextContent();
+            const items = textContent.items;
+        
+            const strings = [];
+        
+            const offsetY = 240;  // Try adjusting this up/down if needed
+        
+            const selectionX0 = left;
+            const selectionY0 = top + offsetY;
+            const selectionX1 = left + width;
+            const selectionY1 = top + height + offsetY;
+        
+            items.forEach(item => {
+                const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+                const x = tx[4];
+                const y = tx[5];
+                const itemWidth = item.width;
+                const itemHeight = item.height;
+        
+                const itemX0 = x;
+                const itemY0 = y - itemHeight;
+                const itemX1 = x + itemWidth;
+                const itemY1 = y;
+        
+                const overlaps = (
+                    itemX0 < selectionX1 &&
+                    itemX1 > selectionX0 &&
+                    itemY0 < selectionY1 &&
+                    itemY1 > selectionY0
+                );
+        
+                if (overlaps) {
+                    strings.push(item.str);
+                }
+            });
+        
+            return strings.join(" ");
+        }
+
         function renderAnnotationsForPage(pageWrapper, pageNum) {
             const allAnnotations = JSON.parse(document.getElementById("annotation-data").textContent);
             console.log("[CONSOLE] ALLANNOTATIONS: ", allAnnotations);
@@ -336,7 +379,7 @@
 
             const bodyTextarea = document.createElement("textarea");
             bodyTextarea.rows = 6;
-            bodyTextarea.placeholder = "Write your note here...";
+            bodyTextarea.placeholder = "Write your note here..." ;
             bodyTextarea.value = body;
             bodyTextarea.disabled = EDIT_DISABLED;
 
@@ -641,7 +684,21 @@
                 try {
                     console.debug("CONSOLE: before createNote is defined. Proceeding to call it.");
                     saveAnnotation(selectionBox);
+
+                    if (tool === "highlight") {
+                        const pageNum = parseInt(selectionBox.dataset.page);
+                        const left = parseFloat(selectionBox.style.left);
+                        const top = parseFloat(selectionBox.style.top);
+                        const width = parseFloat(selectionBox.style.width);
+                        const height = parseFloat(selectionBox.style.height);
+                    
+                        getTextFromHighlightBox(pageNum, left, top, width, height).then(selectedText => {
+                            console.log("[Extracted Text from Highlight Box]:", selectedText);
+                        });
+                    }
+
                     createNote(annotationId, false);
+
                     console.debug("CONSOLE: createNote is defined. Proceeding to call it.");
                 } catch (e) {
                     console.error("createNote is not defined or threw an error:", e);
@@ -651,15 +708,5 @@
 
             selectionBox = null;
         }
-    </script>
-    
-    <script>
-        document.getElementById("pdf-container").addEventListener("mouseup", () => {
-            const selection = window.getSelection();
-            const selectedText = selection.toString().trim();
-            if (selectedText.length > 0) {
-                console.log("[PDF SELECTION]", selectedText);
-            }
-        });
     </script>
 </html>
