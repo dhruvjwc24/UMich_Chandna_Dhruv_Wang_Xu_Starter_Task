@@ -104,7 +104,7 @@ def save_note(request):
         if(data["title"] == "" and data["content"] == ""):
             return JsonResponse({'status': 'success', 'message': 'Empty note created'})
                 
-        if data['note_id'] != "undefined":
+        if data['note_id'] != "null":
             print(f"[DEBUG] NOTE ID FOund - UPDATE: {data}")
 
             note = get_object_or_404(Note, pk=data['note_id'])

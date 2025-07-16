@@ -206,7 +206,7 @@
 
                 console.log("[CONSOLE] ANNOTATION.NOTE: ", annotation.note);
                 if (annotation.note && (annotation.note.title !== '' || annotation.note.body !== '')) {
-                    createNote(annotation.id, true, annotation.note.id, annotation.note.title, annotation.note.body);
+                    createNote(annotation.id, true, annotation.note.id, annotation.note.title, annotation.note.body, "");
                 }
             });
         }
@@ -235,7 +235,7 @@
 
                 const noteId = note.dataset.noteId || null;
 
-                console.log("Title Input: ", noteId);
+                console.log("NoteId Input: ", noteId);
         
                 fetch('/api/save_note/', {
                     method: 'POST',
@@ -303,7 +303,9 @@
             });
         }
 
-        function createNote(annotationId, EDIT_DISABLED, noteId, title = "", body = "") {
+        function createNote(annotationId, EDIT_DISABLED, noteId, title = "", body = "", selectedText = "") {
+            console.log("[CONSOLE] SelectedText in createNote: ", selectedText);
+
             const notePanel = document.querySelector(".right-panel");
 
             const noteDiv = document.createElement("div");
@@ -379,7 +381,7 @@
 
             const bodyTextarea = document.createElement("textarea");
             bodyTextarea.rows = 6;
-            bodyTextarea.placeholder = "Write your note here..." ;
+            bodyTextarea.placeholder = "Write your note here..." + selectedText ;
             bodyTextarea.value = body;
             bodyTextarea.disabled = EDIT_DISABLED;
 
@@ -663,6 +665,7 @@
         }
 
         function endSelection() {
+            let selectedText = "";
             console.debug("DEBUG: In endSelection.");
 
             pdfContainer.removeEventListener("mousemove", updateSelection);
@@ -692,13 +695,17 @@
                         const width = parseFloat(selectionBox.style.width);
                         const height = parseFloat(selectionBox.style.height);
                     
-                        getTextFromHighlightBox(pageNum, left, top, width, height).then(selectedText => {
+                        getTextFromHighlightBox(pageNum, left, top, width, height).then(result => {
+                            selectedText = result;
                             console.log("[Extracted Text from Highlight Box]:", selectedText);
-                        });
-                    }
-
-                    createNote(annotationId, false);
-
+                            createNote(annotationId, false, null, "", "", selectedText);
+                        }) .catch(err => {
+                            console.error("Failed to extract text:", err);
+                            createNote(annotationId, false, null, "", "", ""); // fallback
+                          });
+                    } else {
+                        createNote(annotationId, false, null, "", "", ""); // fallback
+                    }    
                     console.debug("CONSOLE: createNote is defined. Proceeding to call it.");
                 } catch (e) {
                     console.error("createNote is not defined or threw an error:", e);
