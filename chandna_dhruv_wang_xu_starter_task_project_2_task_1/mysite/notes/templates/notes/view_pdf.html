@@ -372,6 +372,8 @@
             buttonContainer.appendChild(deleteBtn);
             noteDiv.appendChild(buttonContainer);
 
+            
+
 
             const titleInput = document.createElement("input");
             titleInput.type = "text";
@@ -381,9 +383,34 @@
 
             const bodyTextarea = document.createElement("textarea");
             bodyTextarea.rows = 6;
-            bodyTextarea.placeholder = "Write your note here..." + selectedText ;
+            bodyTextarea.placeholder = "Write your note here...";
             bodyTextarea.value = body;
             bodyTextarea.disabled = EDIT_DISABLED;
+
+            if (selectedText !== "") {
+                console.log("[CONSOLE] WE FINNA FETCH SUGGEST_NOTE: ", selectedText);
+
+                fetch("/api/suggest_note/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken()
+                    },
+                    body: JSON.stringify({ selectedText: selectedText })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log("[CONSOLE] SUGGESTED NOTE RESPONSE: ", data);
+                    if (data.status === "success") {
+                        titleInput.placeholder = data.suggestedTitle;
+                        bodyTextarea.placeholder = data.suggestedBody;
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to fetch suggested note:", err);
+                });
+            }
+
 
             noteDiv.appendChild(titleInput);
             noteDiv.appendChild(bodyTextarea);

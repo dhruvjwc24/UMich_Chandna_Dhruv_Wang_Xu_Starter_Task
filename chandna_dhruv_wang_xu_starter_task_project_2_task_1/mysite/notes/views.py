@@ -6,6 +6,9 @@ from .models import Article, Annotation, Note
 from .forms import PDFUploadForm
 import json
 
+from transformers import pipeline
+model = pipeline("summarization", model="facebook/bart-large-cnn")
+
 def article_list(request):
     articles = Article.objects.all()
     return render(request, "notes/article_list.html", {"articles": articles})
@@ -74,6 +77,26 @@ def update_note(request):
         note.body = data.get('body', note.body)
         note.save()
         return JsonResponse({"status": "success"})
+    
+def suggest_note(request):
+    if request.method == "POST":
+        suggestedTitle = "Title (optional)"
+        suggestedBody = "Write your note here..."
+        
+        data = json.loads(request.body)
+        selectedText = data.get('selectedText', '').strip()
+        selectedTextLength = selectedText.count(" ") + 2 if selectedText else 0
+        
+        MIN_LENGTH = int(selectedTextLength * 0.25)
+        MAX_LENGTH = int(selectedTextLength * 0.75)
+        
+        response = model(selectedText, max_length=MAX_LENGTH, min_length=MIN_LENGTH, do_sample=False)[0]["summary_text"]
+        suggestedBody = response if response else suggestedBody
+        
+        return JsonResponse({"status": "success", "suggestedTitle": suggestedTitle, "suggestedBody": response})
+        
+        
+        
     
 @csrf_exempt
 def save_annotation(request):
