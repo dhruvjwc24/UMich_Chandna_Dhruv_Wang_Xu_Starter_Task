@@ -184,11 +184,9 @@
             console.log("[CONSOLE] ALLANNOTATIONS: ", allAnnotations);
             const annotationsForPage = allAnnotations.filter(a => a.page === pageNum);
 
-
             annotationsForPage.forEach(annotation => {
                 const annotationEl = document.createElement("div");
                 annotationEl.classList.add(annotation.annotation_type === "highlight-box" ? "highlight-box" : "underline-line");
-//                annotationEl.classList.add("highlight-box");
                 annotationEl.dataset.annotationId = annotation.id;
                 annotationEl.dataset.page = annotation.page;
                 annotationEl.style.left = annotation.left + "px";
@@ -196,17 +194,23 @@
                 annotationEl.style.width = annotation.width + "px";
                 annotationEl.style.height = annotation.height + "px";
                 annotationEl.style.position = "absolute";
-        
+
                 annotationEl.addEventListener("click", () => {
                     highlightPair(annotation.id.toString());
                 });
-        
-                pageWrapper.appendChild(annotationEl);
 
+                pageWrapper.appendChild(annotationEl);
 
                 console.log("[CONSOLE] ANNOTATION.NOTE: ", annotation.note);
                 if (annotation.note && (annotation.note.title !== '' || annotation.note.body !== '')) {
                     createNote(annotation.id, true, annotation.note.id, annotation.note.title, annotation.note.body, "");
+                    // Attach click listener to restored note for highlightPair
+                    const noteElement = document.querySelector(`.note[data-annotation-id='${annotation.id}']`);
+                    if (noteElement) {
+                        noteElement.addEventListener("click", () => {
+                            highlightPair(annotation.id.toString());
+                        });
+                    }
                 }
             });
         }
@@ -440,6 +444,14 @@
             noteDiv.addEventListener("click", () => {
                 highlightPair(annotationId);
             });
+
+            // Also link annotation → note (to ensure reload & new pairs work both ways)
+            const linkedAnnotation = document.querySelector(`[data-annotation-id='${annotationId}']`);
+            if (linkedAnnotation) {
+                linkedAnnotation.addEventListener("click", () => {
+                    highlightPair(annotationId);
+                });
+            }
         }
 
         function highlightPair(annotationId) {
