@@ -389,6 +389,8 @@
 
             if (selectedText !== "") {
                 console.log("[CONSOLE] WE FINNA FETCH SUGGEST_NOTE: ", selectedText);
+                titleInput.placeholder = "AI Suggestion - EDIT ME!";
+                bodyTextarea.placeholder = "Hold tight! We're retrieving an AI suggestion for you... Another thing, don't hesitate to EDIT ME!";
 
                 fetch("/api/suggest_note/", {
                     method: "POST",
@@ -402,8 +404,8 @@
                 .then(data => {
                     console.log("[CONSOLE] SUGGESTED NOTE RESPONSE: ", data);
                     if (data.status === "success") {
-                        titleInput.placeholder = data.suggestedTitle;
-                        bodyTextarea.placeholder = data.suggestedBody;
+                        titleInput.value = data.suggestedTitle;
+                        bodyTextarea.value = data.suggestedBody;
                     }
                 })
                 .catch(err => {

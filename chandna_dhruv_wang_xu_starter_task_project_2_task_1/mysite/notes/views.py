@@ -80,7 +80,7 @@ def update_note(request):
     
 def suggest_note(request):
     if request.method == "POST":
-        suggestedTitle = "Title (optional)"
+        suggestedTitle = "AI Suggestion"
         suggestedBody = "Write your note here..."
         
         data = json.loads(request.body)
