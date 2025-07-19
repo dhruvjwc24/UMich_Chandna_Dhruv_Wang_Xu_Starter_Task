@@ -2,10 +2,12 @@
 _This is a repository containing my work for building an AI Annotation Assistant and a Database Query Manager. Please keep reading for initializing this repository into your local machine, along with further steps on running and interacting with the projects!_
 
 ## Git Initialization
-1. Open your device terminal and navigate to a directory of your choosing. 
+1. Open your device terminal and navigate to a directory of your choosing
 2. In the terminal, execute `mkdir UMich_Chandna_Dhruv_Wang_Xu_Starter_Task_Fork && cd UMich_Chandna_Dhruv_Wang_Xu_Starter_Task_Fork`
-3. Then, initialize a empty git repository using `git init`
-4. Then, clone this repository into your directory using `git clone https://github.com/dhruvjwc24/UMich_Chandna_Dhruv_Wang_Xu_Starter_Task.git`
+3. Initialize a empty git repository using `git init`
+4. Clone this repository into your directory using `git clone https://github.com/dhruvjwc24/UMich_Chandna_Dhruv_Wang_Xu_Starter_Task.git`
+5. Create and activate a virtual environment by running `python3 -m venv venv && source venv/bin/activate`
+6. Install all package requirements by executing `pip3 install -r requirements.txt`
 
 ```
 # Run this in Django shell: python manage.py shell
