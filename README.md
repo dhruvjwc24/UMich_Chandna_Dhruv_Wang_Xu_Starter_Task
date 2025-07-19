@@ -16,6 +16,8 @@ Execute --> `python3 UMich_Chandna_Dhruv_Wang_Xu_Starter_Task/chandna_dhruv_wang
 ### _Database Query Manager_
 Execute --> `python3 UMich_Chandna_Dhruv_Wang_Xu_Starter_Task/chandna_dhruv_wang_xu_starter_task_project_2_task_2/mysite/manage.py runserver`
 
+**TO VIEW EITHER APPLICATION, NAVIGATE TO THE FOLLOWING URL IN YOUR SEARCH BAR: http://127.0.0.1:8000/**
+
 ```
 # Run this in Django shell: python manage.py shell
 
