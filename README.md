@@ -7,7 +7,7 @@ _This is a repository containing my work for building an AI Annotation Assistant
 3. Initialize a empty git repository using --> `git init`
 4. Clone this repository into your directory using --> `git clone https://github.com/dhruvjwc24/UMich_Chandna_Dhruv_Wang_Xu_Starter_Task.git`
 5. Create and activate a virtual environment by running --> `python3 -m venv venv && source venv/bin/activate`
-6. Install all package requirements by executing --> `pip3 install -r requirements.txt`
+6. Install all package requirements by executing --> `pip3 install -r UMich_Chandna_Dhruv_Wang_Xu_Starter_Task/requirements.txt`
 
 ## Running the Applications
 ### _AI Annotation Assistant_
