@@ -9,6 +9,13 @@ _This is a repository containing my work for building an AI Annotation Assistant
 5. Create and activate a virtual environment by running `python3 -m venv venv && source venv/bin/activate`
 6. Install all package requirements by executing `pip3 install -r requirements.txt`
 
+## Running The Applications
+    ## Running the _AI Annotation Assistant_
+    1. Execute `python3 UMich_Chandna_Dhruv_Wang_Xu_Starter_Task/chandna_dhruv_wang_xu_starter_task_project_2_task_1/mysite/manage.py runserver`
+    
+    ## Running the _Database Query Manager_
+    1. Execute `python3 UMich_Chandna_Dhruv_Wang_Xu_Starter_Task/chandna_dhruv_wang_xu_starter_task_project_2_task_2/mysite/manage.py runserver`
+
 ```
 # Run this in Django shell: python manage.py shell
 
