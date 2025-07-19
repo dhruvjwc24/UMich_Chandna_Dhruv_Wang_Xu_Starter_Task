@@ -1,5 +1,7 @@
-# UMich_Chandna_Dhruv_Wang_Xu_Starter_Task
-This is a repository containing an application to assist in note-taking
+# AI Annotation Assistant and Database Query Manager
+_This is a repository containing my work for building an AI Annotation Assistant and a Database Query Manager. Please keep reading for initializing this repository into your local machine, along with further steps on running and interacting with the projects!_
+
+
 
 ```
 # Run this in Django shell: python manage.py shell
