@@ -1,7 +1,9 @@
 # AI Annotation Assistant and Database Query Manager
 _This is a repository containing my work for building an AI Annotation Assistant and a Database Query Manager. Please keep reading for initializing this repository into your local machine, along with further steps on running and interacting with the projects!_
 
-
+## Git Initialization
+1. Open your device terminal and navigate to a directory of your choosing. 
+2. In the terminal, execute `mkdir UMich_Chandna_Dhruv_Wang_Xu_Starter_Task_Fork`
 
 ```
 # Run this in Django shell: python manage.py shell
