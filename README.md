@@ -3,7 +3,9 @@ _This is a repository containing my work for building an AI Annotation Assistant
 
 ## Git Initialization
 1. Open your device terminal and navigate to a directory of your choosing. 
-2. In the terminal, execute `mkdir UMich_Chandna_Dhruv_Wang_Xu_Starter_Task_Fork`
+2. In the terminal, execute `mkdir UMich_Chandna_Dhruv_Wang_Xu_Starter_Task_Fork && cd UMich_Chandna_Dhruv_Wang_Xu_Starter_Task_Fork`
+3. Then, initialize a empty git repository using `git init`
+4. Then, clone this repository into your directory using `git clone https://github.com/dhruvjwc24/UMich_Chandna_Dhruv_Wang_Xu_Starter_Task.git`
 
 ```
 # Run this in Django shell: python manage.py shell
