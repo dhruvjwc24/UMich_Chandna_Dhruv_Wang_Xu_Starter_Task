@@ -1,0 +1,79 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100vw;      /* Full viewport width */
+    box-sizing: border-box;
+}
+
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.table-panels {
+    display: flex;
+    flex-direction: row;
+    width : 100%;
+    align-items: flex-start;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+.panel {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.panel h2 {
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 8px;
+    border: 1px solid #aaa;
+    text-align: left;
+}
+
+.filter-panel {
+    width: 100%;
+    padding: 20px;
+    background-color: #dfefff;
+}
+
+#user-fields,
+#book-fields {
+    margin-top: 10px;
+}
+
+button[type="submit"] {
+    margin-top: 10px;
+}
+
+.left-panel {
+    background-color: #f0f0f0;
+}
+
+.right-panel {
+    background-color: #e6f7ff;
+}
+
+.table-scroll {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.scrollable-select {
+    max-width: 200px;
+    overflow-x: auto;
+    display: inline-block;
+    white-space: nowrap;
+}

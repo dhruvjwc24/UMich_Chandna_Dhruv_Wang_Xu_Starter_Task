@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User and Book Tables</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'querydb/style.css' %}">
+</head>
+<body>
+    <div class="page-wrapper">
+        <select class="liked-books-select-template" style="display:none;">
+            {% for book in books_all %}
+              <option value="{{ book.name }}">{{ book.name }}</option>
+            {% endfor %}
+        </select>
+        
+        <select class="liked-by-select-template" style="display:none;">
+            {% for user in users_all %}
+              <option value="{{ user.name }}">{{ user.name }}</option>
+            {% endfor %}
+        </select>
+        <div class="table-panels">
+            {% if users_filtered %}
+            <div class="panel left-panel">
+                <h2>Users</h2>
+                <div class="table-scroll">
+                    <table>
+                        <tr><th></th><th>Name</th><th>Age</th><th>Liked Books</th><th></th></tr>
+                        {% for user in users_filtered %}
+                        <tr data-id="{{ user.id }}">
+                            <td>
+                                <form method="POST" action="{% url 'delete_user' user.id %}" style="display:inline;">
+                                  {% csrf_token %}
+                                  <button type="submit">🗑️</button>
+                                </form>
+                              </td>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.age }}</td>
+                            <td>
+                                {% for book in user.liked_books.all %}
+                                    {{ book.name }}{% if not forloop.last %}<b>,</b><br>{% endif %}
+                                {% empty %}
+                                    None
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <button type="button" onclick="editRow(this)">✏️</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <div style="text-align: left; margin-top: 10px; display: flex; justify-context: flex-start;">
+                    <form method="POST" action="{% url 'add_user' %}">
+                        {% csrf_token %}
+                        <input type="text" name="name" placeholder="Name" required style="width: 100px;" required>
+                        <input type="number" name="age" placeholder="Age" required style="width: 60px;" required>
+                        <label for="liked_books">Liked Books (optional):</label>
+                        <select name="liked_books" multiple>
+                            {% for book in books_all %}
+                                <option value="{{ book.name }}">{{ book.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit">Add Entry</button>
+                      </form>
+                </div>
+            </div>
+            {% endif %}
+    
+            {% if books_filtered %}
+            <div class="panel right-panel">
+                <h2>Books</h2>
+                <div class="table-scroll">
+                    <table>
+                        <tr><th></th><th>Name</th><th>Price</th><th>Liked By</th><th></th></tr>
+                        {% for book in books_filtered %}
+                        <tr data-id="{{ book.id }}">
+                            <td>
+                                <form method="POST" action="{% url 'delete_book' book.id %}" style="display:inline;">
+                                  {% csrf_token %}
+                                  <button type="submit">🗑️</button>
+                                </form>
+                              </td>
+                            <td>{{ book.name }}</td>
+                            <td>{{ book.price }}</td>
+                            <td>
+                                {% for user in book.liked_by_users.all %}
+                                    {{ user.name }}{% if not forloop.last %}<b>,</b><br>{% endif %}
+                                {% empty %}
+                                    None
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <button type="button" onclick="editRow(this)">✏️</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <div style="text-align: left; margin-top: 10px; display: flex; justify-context: flex-start;">
+                    <form method="POST" action="{% url 'add_book' %}">
+                        {% csrf_token %}
+                        <input type="text" name="name" placeholder="Book Name" required style="width: 120px;" required>
+                        <input type="number" step="0.01" name="price" placeholder="Price" required style="width: 80px;" required>
+                        <label for="liked_by_users">Liked By Users (optional):</label>
+                        <select name="liked_by_users" multiple>
+                            {% for user in users_all %}
+                                <option value="{{ user.name }}">{{ user.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit">Add Entry</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    
+        <div class="filter-panel">
+            <form action="{% url 'filter_results' %}" method="get">
+                <label for="table">In</label>
+                <select name="table" id="table" onchange="updateFields()">
+                    <option value="">--Choose--</option>
+                    <option value="User">User</option>
+                    <option value="Book">Book</option>
+                </select>
+    
+                <div id="user-fields" style="display: none;">
+                    <label>Name:</label>
+                    <select name="user_names" multiple>
+                        {% for user in users_all %}
+                            <option value="{{ user.name }}">{{ user.name }}</option>
+                        {% endfor %}
+                    </select>
+    
+                    <label>Age:</label>
+                    <select name="age_operator">
+                        <option value="">--Select Operator--</option>
+                        <option value="lt">&lt;</option>
+                        <option value="lte">&lt;=</option>
+                        <option value="gt">&gt;</option>
+                        <option value="gte">&gt;=</option>
+                    </select>
+                    <input type="number" name="age_value" placeholder="Enter age">
+    
+                    <label>Liked Books:</label>
+                    <select name="liked_books" multiple>
+                        {% for book in books_all %}
+                            <option value="{{ book.name }}">{{ book.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+    
+                <div id="book-fields" style="display: none;">
+                    <label>Name:</label>
+                    <select name="book_names" multiple>
+                        {% for book in books_all %}
+                            <option value="{{ book.name }}">{{ book.name }}</option>
+                        {% endfor %}
+                    </select>
+    
+                    <label>Price:</label>
+                    <select name="price_operator">
+                        <option value="">--Select Operator--</option>
+                        <option value="lt">&lt;</option>
+                        <option value="lte">&lt;=</option>
+                        <option value="gt">&gt;</option>
+                        <option value="gte">&gt;=</option>
+                    </select>
+                    <input type="number" step="0.01" name="price_value" placeholder="Enter price">
+    
+                    <label>Liked By Users:</label>
+                    <select name="liked_by_users" multiple>
+                        {% for user in users_all %}
+                            <option value="{{ user.name }}">{{ user.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+    
+                <button type="submit">Filter</button>
+            </form>
+        </div>
+    
+        <script>
+        function updateFields() {
+            const table = document.getElementById('table').value;
+            document.getElementById('user-fields').style.display = table === 'User' ? 'block' : 'none';
+            document.getElementById('book-fields').style.display = table === 'Book' ? 'block' : 'none';
+        }
+        
+        function editRow(button) {
+            const row = button.closest("tr");
+            const cells = row.querySelectorAll("td");
+
+            const isEditing = button.innerText === "💾";
+            if (isEditing) {
+                saveEdit(row, button);
+                return;
+            }
+
+            const nameCell = cells[1];
+            const ageOrPriceCell = cells[2];
+            const likedCell = cells[3];
+
+            const isUser = row.closest("table").querySelector("th:nth-child(3)").innerText === "Age";
+            const name = nameCell.innerText.trim();
+            const ageOrPrice = ageOrPriceCell.innerText.trim();
+            const likedList = likedCell.innerText.split(",").map(s => s.trim());
+
+            nameCell.innerHTML = `<input type="text" name="name" value="${name}" />`;
+            ageOrPriceCell.innerHTML = isUser
+                ? `<input type="number" name="age" value="${ageOrPrice}" />`
+                : `<input type="number" step="0.01" name="price" value="${ageOrPrice}" />`;
+
+            let optionsHTML = "";
+            const selectClass = isUser ? "liked-books-select" : "liked-by-select";
+            const options = Array.from(document.querySelectorAll(`.${selectClass}-template option`));
+            options.forEach(option => {
+                const selected = likedList.includes(option.textContent) ? "selected" : "";
+                optionsHTML += `<option value="${option.value}" ${selected}>${option.textContent}</option>`;
+            });
+
+            likedCell.innerHTML = `
+                <div class="scrollable-select">
+                    <select name="${isUser ? 'liked_books' : 'liked_by_users'}" multiple>
+                        ${optionsHTML}
+                    </select>∑
+                </div>
+            `;
+
+            button.innerText = "💾";
+        }
+
+        function saveEdit(row, button) {
+            const isUser = row.closest("table").querySelector("th:nth-child(3)").innerText === "Age";
+            const id = row.dataset.id;
+
+            const name = row.querySelector("input[name='name']").value;
+            const ageOrPrice = row.querySelector("input[name='age'], input[name='price']").value;
+            const likedSelect = row.querySelector("select");
+            const liked = Array.from(likedSelect.selectedOptions).map(o => o.value);
+
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = isUser ? `/save_edit_user/${id}/` : `/save_edit_book/${id}/`;
+
+            const csrf = document.querySelector("input[name='csrfmiddlewaretoken']").cloneNode();
+            form.appendChild(csrf);
+
+            form.innerHTML += `<input type="hidden" name="name" value="${name}">`;
+            form.innerHTML += `<input type="hidden" name="${isUser ? 'age' : 'price'}" value="${ageOrPrice}">`;
+            liked.forEach(val => {
+                form.innerHTML += `<input type="hidden" name="${isUser ? 'liked_books' : 'liked_by_users'}" value="${val}">`;
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+    </script>
+          
+    </div>
+    
+</body>
+</html>
