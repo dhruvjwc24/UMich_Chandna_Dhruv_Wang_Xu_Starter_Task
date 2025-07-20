@@ -20,11 +20,6 @@
 
       #tools-panel button {
         margin-bottom: 5px;
-        padding: 0.5em;
-        cursor: pointer;
-        background-color: #eee;
-        border: 1px solid #ccc;
-        border-radius: 4px;
       }
 
       #tools-panel button.active {
@@ -61,9 +56,43 @@
       .textLayer.block-events {
           pointer-events: none;
       }
+
+      .btn {
+        padding: 0.5em 1em;
+        background-color: #6c63ff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.95em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn:hover {
+        background-color: #5548d9;
+      }
+
+      .btn-icon {
+        background-color: transparent;
+        border: none;
+        font-size: 1.2em;
+        cursor: pointer;
+        color: #444;
+        transition: color 0.2s ease;
+      }
+
+      .btn-icon:hover {
+        color: #000;
+      }
     </style>
 </head>
 <body>
+    <div style="position: absolute; top: 10px; right: 10px; z-index: 1001;">
+        <a href="/" style="text-decoration: none;">
+            <button class="btn">See Article List</button>
+        </a>
+    </div>
     <div class="container">
         <!-- LEFT: PDF Viewer -->
         <div class="pdf-viewer">
@@ -72,7 +101,7 @@
 
         <!-- RIGHT: Notes panel -->
         <div class="right-panel">
-            <button class="save-note-button" onclick="saveAllNotes()">Save Notes</button>
+            <button class="btn" onclick="saveAllNotes()">Save Notes</button>
         </div>
     </div>
     
@@ -327,10 +356,7 @@
             const deleteBtn = document.createElement("button");
             deleteBtn.textContent = "🗑️";
             deleteBtn.title = "Delete Note";
-            deleteBtn.style.cursor = "pointer";
-            deleteBtn.style.background = "none";
-            deleteBtn.style.border = "none";
-            deleteBtn.style.fontSize = "1em";
+            deleteBtn.className = "btn-icon";
 
             deleteBtn.onclick = () => {
                 // Delete note div from UI
@@ -360,10 +386,7 @@
             const editBtn = document.createElement("button");
             editBtn.textContent = "✏️";
             editBtn.title = "Edit Note";
-            editBtn.style.cursor = "pointer";
-            editBtn.style.background = "none";
-            editBtn.style.border = "none";
-            editBtn.style.fontSize = "1em";
+            editBtn.className = "btn-icon";
             editBtn.onclick = () => {
 
                 EDIT_DISABLED = titleInput.disabled;
@@ -475,9 +498,9 @@
 </body>
     <!-- Tools Panel -->
     <div id="tools-panel">
-        <button id="highlight-btn">Highlight</button>
-        <button id="underline-btn">Underline</button>
-        <button id="erase-btn">Erase</button>
+        <button id="highlight-btn" class="btn">Highlight</button>
+        <button id="underline-btn" class="btn">Underline</button>
+        <button id="erase-btn" class="btn">Erase</button>
     </div>
 
     <script>

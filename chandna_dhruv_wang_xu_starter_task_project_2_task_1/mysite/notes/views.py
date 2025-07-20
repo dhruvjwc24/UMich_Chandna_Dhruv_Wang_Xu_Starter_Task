@@ -93,10 +93,7 @@ def suggest_note(request):
         response = model(selectedText, max_length=MAX_LENGTH, min_length=MIN_LENGTH, do_sample=False)[0]["summary_text"]
         suggestedBody = response if response else suggestedBody
         
-        return JsonResponse({"status": "success", "suggestedTitle": suggestedTitle, "suggestedBody": response})
-        
-        
-        
+        return JsonResponse({"status": "success", "suggestedTitle": suggestedTitle, "suggestedBody": response}) 
     
 @csrf_exempt
 def save_annotation(request):
